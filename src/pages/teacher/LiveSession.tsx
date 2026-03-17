@@ -146,7 +146,7 @@ export default function LiveSession() {
   const [session, setSession] = useState<Session | null>(null)
   const [stocks, setStocks] = useState<StockWithStats[]>([])
   const [students, setStudents] = useState<Student[]>([])
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
+  const [, setBookmarks] = useState<Bookmark[]>([])
   const [holdings, setHoldings] = useState<Holding[]>([])
 
   const [tradeDuration, setTradeDuration] = useState(60)

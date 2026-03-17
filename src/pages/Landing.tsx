@@ -4,13 +4,13 @@ import { useEffect } from 'react'
 
 export default function Landing() {
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { teacher } = useAuthStore()
 
   useEffect(() => {
-    if (user) {
+    if (teacher) {
       navigate('/teacher/dashboard')
     }
-  }, [user, navigate])
+  }, [teacher, navigate])
 
   return (
     <div className="page-center">
