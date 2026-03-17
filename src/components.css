@@ -1,0 +1,710 @@
+/* ================================================
+   Class-Stock 글로벌 컴포넌트 스타일
+   이 내용을 src/index.css 맨 아래에 추가
+   ================================================ */
+
+/* ── 페이지 레이아웃 ── */
+.page-center {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--color-cs-bg);
+}
+
+.page-full {
+  min-height: 100vh;
+  background: var(--color-cs-bg);
+}
+
+/* ── 카드 ── */
+.cs-card {
+  background: var(--color-cs-surface);
+  border: 1px solid var(--color-cs-border);
+  border-radius: var(--radius-cs);
+  box-shadow: var(--shadow-cs);
+  padding: 32px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.cs-card-lg {
+  background: var(--color-cs-surface);
+  border: 1px solid var(--color-cs-border);
+  border-radius: 22px;
+  box-shadow: var(--shadow-cs-lg);
+  padding: 40px;
+  width: 100%;
+  max-width: 520px;
+}
+
+/* ── 로고 ── */
+.cs-logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 48px;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, var(--color-cs-up), var(--color-cs-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+}
+
+.cs-logo-sm {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--color-cs-up), var(--color-cs-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── 입력 필드 ── */
+.cs-input {
+  width: 100%;
+  height: 52px;
+  padding: 0 18px;
+  background: var(--color-cs-muted);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-cs-sm);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--color-cs-primary);
+  outline: none;
+  transition: all 0.2s;
+}
+
+.cs-input::placeholder {
+  color: var(--color-cs-hint);
+}
+
+.cs-input:focus {
+  border-color: var(--color-cs-up);
+  background: var(--color-cs-surface);
+  box-shadow: 0 0 0 3px var(--color-cs-up-soft);
+}
+
+/* ── 라벨 ── */
+.cs-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-cs-secondary);
+  margin-bottom: 8px;
+}
+
+/* ── 섹션 라벨 ── */
+.cs-section-label {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-cs-primary);
+  letter-spacing: 0;
+  margin-bottom: 8px;
+}
+
+/* ── 폼 그룹 ── */
+.cs-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── 버튼: Primary ── */
+.cs-btn-primary {
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: var(--radius-cs-sm);
+  background: linear-gradient(135deg, #FF4747, #FF7744);
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(255, 71, 71, 0.15);
+}
+
+.cs-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(255, 71, 71, 0.25);
+}
+
+.cs-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* ── 버튼: Secondary ── */
+.cs-btn-secondary {
+  width: 100%;
+  height: 52px;
+  border: 1px solid var(--color-cs-border2);
+  border-radius: var(--radius-cs-sm);
+  background: var(--color-cs-surface);
+  color: var(--color-cs-secondary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cs-btn-secondary:hover {
+  background: var(--color-cs-muted);
+  color: var(--color-cs-primary);
+  transform: translateY(-1px);
+}
+
+/* ── 버튼: 매수 ── */
+.cs-btn-buy {
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-cs-xs);
+  background: var(--color-cs-up);
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cs-btn-buy:hover {
+  opacity: 0.9;
+}
+
+/* ── 버튼: 매도 ── */
+.cs-btn-sell {
+  padding: 10px 20px;
+  border: 1px solid rgba(58, 123, 222, 0.15);
+  border-radius: var(--radius-cs-xs);
+  background: var(--color-cs-down-soft);
+  color: var(--color-cs-down);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+/* ── 버튼: 도전 (히든 종목) ── */
+.cs-btn-challenge {
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-cs-xs);
+  background: linear-gradient(135deg, var(--color-cs-gold), #FFBB33);
+  color: #5A3800;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+/* ── 버튼: Disabled ── */
+.cs-btn-disabled {
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-cs-xs);
+  background: var(--color-cs-muted);
+  color: var(--color-cs-hint);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: not-allowed;
+}
+
+/* ── 버튼: 서프라이즈 ── */
+.cs-btn-surprise {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px dashed var(--color-cs-gold);
+  border-radius: var(--radius-cs-xs);
+  background: transparent;
+  color: var(--color-cs-gold-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cs-btn-surprise:hover {
+  background: var(--color-cs-gold-soft);
+}
+
+/* ── 랜딩 역할 선택 버튼 ── */
+.cs-role-btn {
+  width: 480px;
+  max-width: 100%;
+  padding: 24px 32px;
+  background: var(--color-cs-surface);
+  border: 1px solid var(--color-cs-border);
+  border-radius: var(--radius-cs);
+  box-shadow: var(--shadow-cs);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.cs-role-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-cs-lg);
+  border-color: var(--color-cs-border2);
+}
+
+.cs-role-btn .title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-cs-primary);
+}
+
+.cs-role-btn .desc {
+  font-size: 14px;
+  color: var(--color-cs-secondary);
+  margin-top: 4px;
+}
+
+/* ── 탭 ── */
+.cs-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--color-cs-muted);
+  margin-bottom: 24px;
+}
+
+.cs-tab {
+  flex: 1;
+  padding: 14px 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-cs-hint);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.cs-tab:hover {
+  color: var(--color-cs-secondary);
+}
+
+.cs-tab.active {
+  color: var(--color-cs-primary);
+  font-weight: 700;
+  border-bottom-color: var(--color-cs-up);
+}
+
+/* ── 태그/배지 ── */
+.cs-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cs-tag-hot {
+  background: var(--color-cs-up-soft);
+  color: var(--color-cs-up-text);
+}
+
+.cs-tag-hidden {
+  background: var(--color-cs-gold-soft);
+  color: var(--color-cs-gold-text);
+}
+
+.cs-tag-new {
+  background: var(--color-cs-mint-soft);
+  color: var(--color-cs-mint-text);
+}
+
+.cs-tag-hold {
+  background: var(--color-cs-up-soft);
+  color: var(--color-cs-up-text);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+/* ── 통계 카드 ── */
+.cs-stat-card {
+  padding: 20px;
+  background: var(--color-cs-surface);
+  border: 1px solid var(--color-cs-border);
+  border-radius: var(--radius-cs);
+  box-shadow: var(--shadow-cs);
+}
+
+.cs-stat-label {
+  font-size: 12px;
+  color: var(--color-cs-secondary);
+  margin-bottom: 8px;
+}
+
+.cs-stat-value {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1.1;
+}
+
+.cs-stat-hint {
+  font-size: 11px;
+  color: var(--color-cs-hint);
+  margin-top: 6px;
+}
+
+/* ── 바 차트 ── */
+.cs-bar-track {
+  height: 28px;
+  background: var(--color-cs-muted);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.cs-bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+}
+
+.cs-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.35), transparent);
+  border-radius: 8px 8px 0 0;
+}
+
+.cs-bar-hi { background: linear-gradient(90deg, #FF4747, #FF8866); }
+.cs-bar-md { background: linear-gradient(90deg, #F0A030, #FFD060); }
+.cs-bar-lo { background: linear-gradient(90deg, #C8C8D0, #DADAE0); }
+
+/* ── 퍼센트 텍스트 ── */
+.cs-pct {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.cs-pct-hi { color: var(--color-cs-up-text); }
+.cs-pct-md { color: var(--color-cs-gold-text); }
+.cs-pct-lo { color: var(--color-cs-hint); }
+
+/* ── 인사이트 카드 ── */
+.cs-insight {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: var(--color-cs-gold-soft);
+  border: 1px solid rgba(240, 160, 48, 0.12);
+  border-radius: var(--radius-cs-sm);
+}
+
+.cs-insight strong {
+  color: var(--color-cs-gold-text);
+}
+
+/* ── 거래 배너 ── */
+.cs-trade-open {
+  padding: 14px 16px;
+  border-radius: var(--radius-cs-sm);
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  background: linear-gradient(135deg, rgba(255,71,71,0.06), rgba(255,119,68,0.06));
+  color: var(--color-cs-up-text);
+  border: 1.5px solid rgba(255, 71, 71, 0.18);
+  animation: cs-banner-pulse 2s infinite;
+}
+
+.cs-trade-closed {
+  padding: 14px 16px;
+  border-radius: var(--radius-cs-sm);
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  background: var(--color-cs-muted);
+  color: var(--color-cs-hint);
+  border: 1px solid var(--color-cs-border);
+}
+
+/* ── 포트폴리오 헤더 ── */
+.cs-portfolio {
+  text-align: center;
+  padding: 32px 24px 28px;
+  background: var(--color-cs-surface);
+  border-radius: 22px;
+  box-shadow: var(--shadow-cs-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.cs-portfolio::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 260px;
+  height: 120px;
+  background: radial-gradient(ellipse, rgba(255,71,71,0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.cs-portfolio-value {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -2px;
+  line-height: 1;
+  color: var(--color-cs-primary);
+}
+
+.cs-portfolio-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cs-portfolio-change.up {
+  background: var(--color-cs-up-soft);
+  color: var(--color-cs-up-text);
+}
+
+.cs-portfolio-change.down {
+  background: var(--color-cs-down-soft);
+  color: var(--color-cs-down);
+}
+
+/* ── 종목 카드 (학생) ── */
+.cs-stock-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--color-cs-surface);
+  border: 1px solid var(--color-cs-border);
+  border-radius: var(--radius-cs-sm);
+  box-shadow: var(--shadow-cs);
+  transition: all 0.15s;
+}
+
+.cs-stock-card:active {
+  transform: scale(0.985);
+}
+
+.cs-stock-card.owned {
+  border-color: rgba(255, 71, 71, 0.15);
+  background: linear-gradient(135deg, #FFF, rgba(255, 71, 71, 0.02));
+}
+
+.cs-stock-card.mystery {
+  border: 1.5px dashed rgba(240, 160, 48, 0.25);
+  background: linear-gradient(135deg, #FFF, rgba(240, 160, 48, 0.03));
+}
+
+.cs-stock-card.locked {
+  opacity: 0.45;
+}
+
+/* ── 종목 항목 (교사) ── */
+.cs-stock-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--color-cs-surface);
+  border: 1px solid var(--color-cs-border);
+  border-radius: var(--radius-cs-xs);
+  transition: all 0.15s;
+}
+
+.cs-stock-item:hover {
+  background: var(--color-cs-hover);
+  border-color: var(--color-cs-border2);
+}
+
+/* ── 공개 버튼 ── */
+.cs-reveal-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--color-cs-border2);
+  border-radius: 6px;
+  background: var(--color-cs-surface);
+  color: var(--color-cs-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cs-reveal-btn:hover {
+  background: var(--color-cs-muted);
+  border-color: var(--color-cs-mint);
+  color: var(--color-cs-mint-text);
+}
+
+.cs-reveal-btn.done {
+  background: var(--color-cs-mint-soft);
+  border-color: var(--color-cs-mint);
+  color: var(--color-cs-mint-text);
+  cursor: default;
+}
+
+/* ── 큰 타이머 ── */
+.cs-timer {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--color-cs-up);
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+/* ── 라이브 dot ── */
+.cs-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-cs-mint);
+  box-shadow: 0 0 8px rgba(26, 176, 122, 0.5);
+  animation: cs-blink 2.5s infinite;
+  flex-shrink: 0;
+}
+
+/* ── 하단 잔고 바 (학생) ── */
+.cs-balance-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  max-width: 100%;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--color-cs-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 50;
+}
+
+/* ── 네비게이션 바 ── */
+.cs-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--color-cs-border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── 교사 2단 레이아웃 ── */
+.cs-teacher-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  min-height: calc(100vh - 57px);
+}
+
+.cs-teacher-side {
+  background: var(--color-cs-surface);
+  border-right: 1px solid var(--color-cs-border);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.cs-teacher-main {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+}
+
+/* ── 학생 모바일 래퍼 ── */
+.cs-student-wrap {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 16px 16px 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── 숫자 표시 ── */
+.cs-number {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.cs-mono {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+/* ── 애니메이션 ── */
+@keyframes cs-banner-pulse {
+  0%, 100% { border-color: rgba(255, 71, 71, 0.18); box-shadow: none; }
+  50% { border-color: rgba(255, 71, 71, 0.3); box-shadow: 0 0 20px rgba(255, 71, 71, 0.05); }
+}
+
+@keyframes cs-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@keyframes cs-star-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* ── 반응형 ── */
+@media (max-width: 900px) {
+  .cs-teacher-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cs-teacher-side {
+    border-right: none;
+    border-bottom: 1px solid var(--color-cs-border);
+  }
+}
