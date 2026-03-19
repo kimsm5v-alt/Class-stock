@@ -12,7 +12,7 @@ interface StockWithStatus extends Stock {
 export default function LiveTrading() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { studentId, studentNickname } = useSessionStore()
+  const { studentId } = useSessionStore()
 
   const [session, setSession] = useState<Session | null>(null)
   const [stocks, setStocks] = useState<StockWithStatus[]>([])
@@ -133,171 +133,191 @@ export default function LiveTrading() {
 
   const isTrading = session?.status === 'trading'
   const totalInvested = holdings.reduce((sum, h) => sum + h.amount, 0)
+  const totalAssets = balance + totalInvested
+  const returnRate = ((totalAssets - 10000) / 10000) * 100
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-cs-bg)', paddingBottom: '100px' }}>
-      {/* Header */}
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 20,
-        background: 'var(--color-cs-surface)',
-        borderBottom: '1px solid var(--color-cs-border)',
-        padding: '12px 16px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-cs-primary)' }}>
-              {session?.class_name} · {session?.subject}
-            </p>
-            <p style={{ fontSize: '12px', color: 'var(--color-cs-hint)' }}>{session?.unit_name}</p>
+    <div style={{ minHeight: '100vh', background: 'var(--color-cs-bg)' }}>
+      <div className="cs-student-wrap">
+
+        {/* Portfolio Header */}
+        <div className="cs-portfolio">
+          <div style={{ fontSize: '12px', color: 'var(--color-cs-secondary)', marginBottom: '4px' }}>
+            나의 수업 포트폴리오
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <span className="cs-tag cs-tag-new">{studentNickname}</span>
+          <div className="cs-portfolio-value">
+            {totalAssets.toLocaleString()}
+          </div>
+          <div className={`cs-portfolio-change ${returnRate >= 0 ? 'up' : 'down'}`}>
+            {returnRate >= 0 ? '▲' : '▼'} {returnRate >= 0 ? '+' : ''}{(totalAssets - 10000).toLocaleString()} ({returnRate >= 0 ? '+' : ''}{returnRate.toFixed(1)}%)
           </div>
         </div>
-      </header>
 
-      {/* Trading Status Banner */}
-      {isTrading && countdown !== null && (
-        <div style={{
-          background: 'linear-gradient(135deg, var(--color-cs-up), #FF8866)',
-          padding: '16px',
-          textAlign: 'center',
-          color: 'white',
-        }}>
-          <p style={{ fontSize: '12px', opacity: 0.9, marginBottom: '4px' }}>거래 마감까지</p>
-          <p style={{ fontSize: '32px', fontFamily: 'var(--font-display)', fontWeight: 800 }}>
-            {formatTime(countdown)}
-          </p>
-        </div>
-      )}
-
-      {!isTrading && (
-        <div style={{
-          background: 'var(--color-cs-muted)',
-          padding: '16px',
-          textAlign: 'center',
-        }}>
-          <p style={{ fontSize: '14px', color: 'var(--color-cs-secondary)' }}>
+        {/* Trade Status Banner */}
+        {isTrading && countdown !== null ? (
+          <div className="cs-trade-open">
+            거래 윈도우 오픈!
+            <span style={{
+              display: 'block',
+              fontFamily: 'var(--font-display)',
+              fontSize: '24px',
+              fontWeight: 800,
+              marginTop: '2px',
+              letterSpacing: '-1px',
+              color: 'var(--color-cs-up)',
+            }}>
+              {formatTime(countdown)}
+            </span>
+          </div>
+        ) : (
+          <div className="cs-trade-closed">
             거래가 열리면 매수/매도가 가능합니다
-          </p>
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* Balance & Stats */}
-      <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-        <div className="cs-stat-card">
-          <p style={{ fontSize: '11px', color: 'var(--color-cs-hint)', marginBottom: '4px' }}>보유 포인트</p>
-          <p style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-cs-primary)', fontFamily: 'var(--font-mono)' }}>
-            {balance.toLocaleString()}pt
-          </p>
-        </div>
-        <div className="cs-stat-card">
-          <p style={{ fontSize: '11px', color: 'var(--color-cs-hint)', marginBottom: '4px' }}>투자 중</p>
-          <p style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-cs-mint-text)', fontFamily: 'var(--font-mono)' }}>
-            {totalInvested.toLocaleString()}pt
-          </p>
-        </div>
-      </div>
+        {/* Stock Cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {stocks.map((stock) => {
+            const isHiddenUnrevealed = stock.is_hidden && !stock.is_revealed
+            const isLocked = !stock.is_revealed && !stock.is_hidden
 
-      {/* Stock List */}
-      <div style={{ padding: '0 16px' }}>
-        <p className="cs-section-label" style={{ marginBottom: '12px' }}>오늘의 종목</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {stocks.map((stock) => (
-            <div
-              key={stock.id}
-              style={{
-                background: 'var(--color-cs-surface)',
-                borderRadius: 'var(--radius-cs-md)',
-                border: stock.is_hidden && !stock.is_revealed
-                  ? '1px dashed var(--color-cs-gold)'
-                  : '1px solid var(--color-cs-border)',
-                padding: '16px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {stock.is_hidden && !stock.is_revealed && (
-                    <span className="cs-tag cs-tag-hidden">HIDDEN</span>
-                  )}
-                  <span style={{ fontWeight: 600, fontSize: '16px', color: 'var(--color-cs-primary)' }}>
-                    {stock.is_revealed ? `#${stock.keyword}` : '???'}
-                  </span>
+            // Hidden card (mystery)
+            if (isHiddenUnrevealed) {
+              return (
+                <div key={stock.id} className="cs-stock-card mystery">
+                  <button
+                    className="star-btn"
+                    onClick={() => handleToggleBookmark(stock)}
+                    style={{
+                      width: '32px', height: '32px', border: 'none', background: 'transparent',
+                      fontSize: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', borderRadius: '8px', flexShrink: 0,
+                    }}
+                  >
+                    {stock.isBookmarked ? '⭐' : '☆'}
+                  </button>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-cs-gold-text)' }}>
+                      ??? <span className="cs-tag cs-tag-hidden">HIDDEN</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-cs-gold-text)', opacity: 0.7 }}>
+                      정체불명 · 대박 or 쪽박?
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <button
+                      className="cs-btn-challenge"
+                      onClick={() => {
+                        setBuyModalStock(stock)
+                        setBuyAmount(null)
+                      }}
+                      disabled={!isTrading || balance < 1000}
+                      style={{ opacity: (!isTrading || balance < 1000) ? 0.5 : 1 }}
+                    >
+                      도전!
+                    </button>
+                  </div>
                 </div>
+              )
+            }
+
+            // Locked card (unrevealed, non-hidden)
+            if (isLocked) {
+              return (
+                <div key={stock.id} className="cs-stock-card locked">
+                  <button
+                    style={{
+                      width: '32px', height: '32px', border: 'none', background: 'transparent',
+                      fontSize: '18px', opacity: 0.4, display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', borderRadius: '8px', flexShrink: 0,
+                    }}
+                    disabled
+                  >
+                    🔒
+                  </button>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-cs-hint)' }}>
+                      #{stock.keyword}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-cs-secondary)' }}>
+                      아직 미공개
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <button className="cs-btn-disabled">대기</button>
+                  </div>
+                </div>
+              )
+            }
+
+            // Normal / owned card
+            const hasHolding = stock.holding && stock.holding.amount > 0
+            return (
+              <div key={stock.id} className={`cs-stock-card${hasHolding ? ' owned' : ''}`}>
                 <button
                   onClick={() => handleToggleBookmark(stock)}
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '20px',
-                    cursor: 'pointer',
-                    opacity: stock.isBookmarked ? 1 : 0.3,
+                    width: '32px', height: '32px', border: 'none', background: 'transparent',
+                    fontSize: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', borderRadius: '8px', flexShrink: 0,
                   }}
                 >
-                  {stock.isBookmarked ? '★' : '☆'}
+                  {stock.isBookmarked ? '⭐' : '☆'}
                 </button>
-              </div>
-
-              {/* Holding Info */}
-              {stock.holding && (
-                <div style={{
-                  background: 'var(--color-cs-mint-soft)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  marginBottom: '12px',
-                }}>
-                  <p style={{ fontSize: '12px', color: 'var(--color-cs-mint-text)' }}>
-                    보유 중: <strong>{stock.holding.amount.toLocaleString()}pt</strong>
-                  </p>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    #{stock.keyword}
+                    {hasHolding && (
+                      <span className="cs-tag-hold">{stock.holding!.amount.toLocaleString()}pt</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--color-cs-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    매수율 —
+                  </div>
                 </div>
-              )}
-
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={() => {
-                    setBuyModalStock(stock)
-                    setBuyAmount(null)
-                  }}
-                  disabled={!isTrading || !stock.is_revealed || balance < 1000}
-                  style={{
-                    flex: 1,
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: 'var(--color-cs-up)',
-                    color: 'white',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    cursor: (!isTrading || !stock.is_revealed || balance < 1000) ? 'not-allowed' : 'pointer',
-                    opacity: (!isTrading || !stock.is_revealed || balance < 1000) ? 0.5 : 1,
-                  }}
-                >
-                  매수하기
-                </button>
-                <button
-                  onClick={() => handleSell(stock)}
-                  disabled={!isTrading || !stock.holding}
-                  style={{
-                    flex: 1,
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--color-cs-down)',
-                    background: 'transparent',
-                    color: 'var(--color-cs-down)',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    cursor: (!isTrading || !stock.holding) ? 'not-allowed' : 'pointer',
-                    opacity: (!isTrading || !stock.holding) ? 0.5 : 1,
-                  }}
-                >
-                  전량 매도
-                </button>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  {hasHolding && (
+                    <button
+                      className="cs-btn-sell"
+                      onClick={() => handleSell(stock)}
+                      disabled={!isTrading}
+                      style={{ opacity: !isTrading ? 0.5 : 1 }}
+                    >
+                      매도
+                    </button>
+                  )}
+                  <button
+                    className="cs-btn-buy"
+                    onClick={() => {
+                      setBuyModalStock(stock)
+                      setBuyAmount(null)
+                    }}
+                    disabled={!isTrading || balance < 1000}
+                    style={{ opacity: (!isTrading || balance < 1000) ? 0.5 : 1 }}
+                  >
+                    {hasHolding ? '추가매수' : '매수'}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
+        </div>
+
+      </div>
+
+      {/* Balance Bar (fixed bottom) */}
+      <div className="cs-balance-bar">
+        <div>
+          <div style={{ fontSize: '11px', color: 'var(--color-cs-hint)' }}>투자 가능</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: '17px', fontWeight: 700, letterSpacing: '-0.5px' }}>
+            {balance.toLocaleString()}<span style={{ fontSize: '11px', fontWeight: 400, color: 'var(--color-cs-hint)', marginLeft: '2px' }}>pt</span>
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: '11px', color: 'var(--color-cs-hint)' }}>투자 완료</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: '17px', fontWeight: 700, letterSpacing: '-0.5px', color: 'var(--color-cs-up-text)' }}>
+            {totalInvested.toLocaleString()}<span style={{ fontSize: '11px', fontWeight: 400, color: 'var(--color-cs-hint)', marginLeft: '2px' }}>pt</span>
+          </div>
         </div>
       </div>
 
@@ -317,6 +337,8 @@ export default function LiveTrading() {
           <div
             style={{
               width: '100%',
+              maxWidth: '420px',
+              margin: '0 auto',
               background: 'var(--color-cs-surface)',
               borderRadius: '20px 20px 0 0',
               padding: '24px',
@@ -325,7 +347,7 @@ export default function LiveTrading() {
             onClick={e => e.stopPropagation()}
           >
             <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-cs-primary)', marginBottom: '4px' }}>
-              #{buyModalStock.keyword} 매수
+              {buyModalStock.is_hidden && !buyModalStock.is_revealed ? '??? 히든 종목' : `#${buyModalStock.keyword}`} 매수
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--color-cs-hint)', marginBottom: '20px' }}>
               보유 포인트: {balance.toLocaleString()}pt

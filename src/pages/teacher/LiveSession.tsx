@@ -264,18 +264,6 @@ export default function LiveSession() {
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  const getBarClass = (rate: number) => {
-    if (rate >= 70) return 'cs-bar-hi'
-    if (rate >= 30) return 'cs-bar-md'
-    return 'cs-bar-lo'
-  }
-
-  const getPctClass = (rate: number) => {
-    if (rate >= 70) return 'cs-pct-hi'
-    if (rate >= 30) return 'cs-pct-md'
-    return 'cs-pct-lo'
-  }
-
   const totalStudents = students.length
   const isTrading = session?.status === 'trading'
   const isActive = session?.status === 'active'
@@ -326,7 +314,7 @@ export default function LiveSession() {
                     </span>
                   </div>
                   <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: 'var(--color-cs-hint)' }}>
-                    <span>☆ {stock.bookmarkCount}명</span>
+                    <span>⭐ {stock.bookmarkCount}명</span>
                     <span>매수 {stock.buyCount}명</span>
                   </div>
                 </div>
@@ -447,22 +435,80 @@ export default function LiveSession() {
         </div>
 
         <div className="cs-stat-card">
-          <p className="cs-section-label" style={{ marginBottom: '16px' }}>종목별 매수율</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <p className="cs-section-label" style={{ marginBottom: 0 }}>종목별 찜하기 / 매수 현황</p>
+            <div style={{ display: 'flex', gap: '12px', fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--color-cs-hint)' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: 8, height: 8, borderRadius: 2, background: '#F0A030', display: 'inline-block' }} />찜하기율
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: 8, height: 8, borderRadius: 2, background: '#FF4747', display: 'inline-block' }} />매수율
+              </span>
+            </div>
+          </div>
+
+          {/* Column headers */}
+          <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 1px 1fr', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
+            <span />
+            <span style={{ fontSize: '10px', color: '#C07800', textAlign: 'center', fontFamily: 'var(--font-mono)' }}>찜하기율</span>
+            <span />
+            <span style={{ fontSize: '10px', color: '#E03030', textAlign: 'center', fontFamily: 'var(--font-mono)' }}>매수율</span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {stocks.filter(s => s.is_revealed).sort((a, b) => b.buyCount - a.buyCount).map((stock) => {
-              const buyRate = totalStudents > 0 ? Math.round((stock.buyCount / totalStudents) * 100) : 0
+              const bookmarkRate = totalStudents > 0 ? Math.round((stock.bookmarkCount / totalStudents) * 100) : 0
+              const buyRate = isTrading || session?.status === 'closed'
+                ? (totalStudents > 0 ? Math.round((stock.buyCount / totalStudents) * 100) : 0)
+                : 0
+              const gap = bookmarkRate - buyRate
+              const hasGap = gap >= 20
+
               return (
-                <div key={stock.id}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-cs-primary)' }}>#{stock.keyword}</span>
-                      {stock.is_hidden && <span className="cs-tag cs-tag-hidden">HIDDEN</span>}
-                      {buyRate >= 70 && <span className="cs-tag cs-tag-hot">HOT</span>}
-                    </div>
-                    <span className={`cs-pct ${getPctClass(buyRate)}`}>{buyRate}%</span>
+                <div key={stock.id} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 1px 1fr', gap: '8px', alignItems: 'center' }}>
+                  {/* Col 1: Stock name */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
+                    {stock.is_core && <span style={{ color: 'var(--color-cs-up)', fontSize: '12px' }}>★</span>}
+                    <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-cs-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      #{stock.keyword}
+                    </span>
+                    {stock.is_hidden && <span className="cs-tag cs-tag-hidden" style={{ fontSize: '8px', padding: '1px 4px', flexShrink: 0 }}>H</span>}
+                    {hasGap && (
+                      <span style={{
+                        fontSize: '9px', fontFamily: 'var(--font-mono)', fontWeight: 600,
+                        padding: '1px 5px', background: 'var(--color-cs-gold-soft)', color: 'var(--color-cs-gold-text)',
+                        borderRadius: '4px', whiteSpace: 'nowrap', flexShrink: 0,
+                      }}>
+                        ⚠️{gap}%
+                      </span>
+                    )}
                   </div>
-                  <div className="cs-bar-track">
-                    <div className={`cs-bar-fill ${getBarClass(buyRate)}`} style={{ width: `${buyRate}%` }} />
+
+                  {/* Col 2: Bookmark bar */}
+                  <div style={{ position: 'relative', height: '28px', background: 'rgba(240,160,48,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${bookmarkRate}%`, background: '#F0A030', borderRadius: '6px', transition: 'width 0.7s' }} />
+                    <span style={{
+                      position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                      background: 'rgba(255,255,255,0.9)', padding: '2px 8px', borderRadius: '10px',
+                      fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 600, color: '#C07800',
+                    }}>
+                      {bookmarkRate}%
+                    </span>
+                  </div>
+
+                  {/* Col 3: Divider */}
+                  <div style={{ width: '1px', height: '20px', background: 'var(--color-cs-border2)', justifySelf: 'center' }} />
+
+                  {/* Col 4: Buy bar */}
+                  <div style={{ position: 'relative', height: '28px', background: 'rgba(255,71,71,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${buyRate}%`, background: '#FF4747', borderRadius: '6px', transition: 'width 0.7s' }} />
+                    <span style={{
+                      position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                      background: 'rgba(255,255,255,0.9)', padding: '2px 8px', borderRadius: '10px',
+                      fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 600, color: '#E03030',
+                    }}>
+                      {buyRate}%
+                    </span>
                   </div>
                 </div>
               )

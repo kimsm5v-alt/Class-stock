@@ -4,6 +4,7 @@ import type {
   Session, Stock, Student, Holding, Bookmark, Trade, Teacher,
   SessionStatus, BuyStockResponse, SellStockResponse, SettleSessionResponse
 } from '../lib/types'
+import { getMultiplier } from '../lib/multiplier'
 
 // UUID 생성 헬퍼
 const generateId = () => crypto.randomUUID()
@@ -78,6 +79,13 @@ const initialState = {
   bookmarks: [],
   trades: [],
 }
+
+// BroadcastChannel 탭 간 실시간 동기화
+const channel = typeof window !== 'undefined'
+  ? new BroadcastChannel('class-stock-sync')
+  : null
+
+let _isSyncUpdate = false
 
 export const useMockStore = create<MockState>()(
   persist(
@@ -347,14 +355,27 @@ export const useMockStore = create<MockState>()(
       getStockHoldings: (stockId) =>
         get().holdings.filter((h) => h.stock_id === stockId),
 
-      // 정산
+      // 정산 — 매수율 연동 배율
       settleSession: (sessionId, coreStockIds) => {
         // 핵심 종목 설정
         get().setCoreStocks(sessionId, coreStockIds)
 
         const students = get().getSessionStudents(sessionId)
         const stocks = get().getSessionStocks(sessionId)
+        const totalStudents = students.length
         const studentResults: SettleSessionResponse['student_results'] = []
+
+        // 종목별 매수율 계산
+        const allHoldings: Holding[] = []
+        for (const student of students) {
+          allHoldings.push(...get().getStudentHoldings(student.id))
+        }
+        const stockBuyRates = new Map<string, number>()
+        for (const stock of stocks) {
+          const buyCount = allHoldings.filter(h => h.stock_id === stock.id).length
+          const buyRate = totalStudents > 0 ? Math.round((buyCount / totalStudents) * 100) : 0
+          stockBuyRates.set(stock.id, buyRate)
+        }
 
         for (const student of students) {
           const studentHoldings = get().getStudentHoldings(student.id)
@@ -367,14 +388,15 @@ export const useMockStore = create<MockState>()(
             if (!stock) continue
 
             totalInvested += holding.amount
+            const isCore = coreStockIds.includes(stock.id)
+            const buyRate = stockBuyRates.get(stock.id) ?? 0
+            const multiplier = getMultiplier(isCore, buyRate)
 
-            if (coreStockIds.includes(stock.id)) {
-              // 핵심 종목: ×3
-              settledTotal += holding.amount * 3
+            if (isCore) {
               coreInvested += holding.amount
+              settledTotal += Math.floor(holding.amount * multiplier)
             } else {
-              // 비핵심 종목: ×0.5
-              settledTotal += Math.floor(holding.amount * 0.5)
+              settledTotal += Math.floor(holding.amount * multiplier)
             }
           }
 
@@ -406,3 +428,26 @@ export const useMockStore = create<MockState>()(
     }
   )
 )
+
+// BroadcastChannel 탭 간 실시간 동기화 설정
+if (channel) {
+  // 상태 변경 시 다른 탭에 브로드캐스트
+  const dataKeys = ['teachers', 'sessions', 'stocks', 'students', 'holdings', 'bookmarks', 'trades'] as const
+  useMockStore.subscribe((state) => {
+    if (_isSyncUpdate) return
+    const data: Record<string, unknown> = {}
+    for (const key of dataKeys) {
+      data[key] = state[key]
+    }
+    channel.postMessage({ type: 'STATE_UPDATE', data })
+  })
+
+  // 다른 탭에서 메시지 수신 시 상태 반영
+  channel.onmessage = (event) => {
+    if (event.data?.type === 'STATE_UPDATE') {
+      _isSyncUpdate = true
+      useMockStore.setState(event.data.data, false)
+      _isSyncUpdate = false
+    }
+  }
+}

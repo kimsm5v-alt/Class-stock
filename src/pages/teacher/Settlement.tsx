@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useMockStore } from '../../stores/mockStore'
+import { getMultiplier } from '../../lib/multiplier'
 import type { Session, Stock, Student, Holding } from '../../lib/types'
 
 interface StockWithStats extends Stock {
@@ -115,7 +116,7 @@ export default function Settlement() {
             💡 오늘 수업의 핵심 키워드 3개를 선택하세요
           </p>
           <p style={{ fontSize: '12px', color: 'var(--color-cs-gold-text)', opacity: 0.8, marginTop: '4px' }}>
-            선택한 종목에 투자한 학생은 3배 수익, 나머지는 50% 손실로 정산됩니다
+            매수율에 따라 배율이 결정됩니다. 핵심: ×2~×4 / 비핵심: ×0.3~×0.7
           </p>
         </div>
 
@@ -181,14 +182,43 @@ export default function Settlement() {
                       </div>
                     </div>
 
-                    {/* Buy Rate */}
+                    {/* Buy Rate + Expected Multiplier */}
                     <div style={{ textAlign: 'right' }}>
-                      <span className="cs-mono" style={{ fontSize: '14px', color: 'var(--color-cs-secondary)' }}>
-                        {stock.buyRate}%
-                      </span>
-                      <span style={{ fontSize: '12px', color: 'var(--color-cs-hint)', marginLeft: '4px' }}>
-                        ({stock.buyCount}/{totalStudents})
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
+                        <span className="cs-mono" style={{ fontSize: '14px', color: 'var(--color-cs-secondary)' }}>
+                          매수율 {stock.buyRate}%
+                        </span>
+                        <span style={{ fontSize: '11px', color: 'var(--color-cs-hint)' }}>
+                          ({stock.buyCount}/{totalStudents})
+                        </span>
+                      </div>
+                      {isSelected && (
+                        <div style={{
+                          marginTop: '6px',
+                          padding: '4px 10px',
+                          background: 'var(--color-cs-up-soft)',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: 600,
+                          color: 'var(--color-cs-up-text)',
+                        }}>
+                          핵심 → ×{getMultiplier(true, stock.buyRate)} 적용
+                        </div>
+                      )}
+                      {!isSelected && (
+                        <div style={{
+                          marginTop: '4px',
+                          fontSize: '11px',
+                          fontFamily: 'var(--font-mono)',
+                          color: 'var(--color-cs-hint)',
+                          display: 'flex', gap: '6px', justifyContent: 'flex-end',
+                        }}>
+                          <span style={{ color: 'var(--color-cs-up-text)' }}>핵심 ×{getMultiplier(true, stock.buyRate)}</span>
+                          <span>/</span>
+                          <span style={{ color: 'var(--color-cs-down)' }}>비핵심 ×{getMultiplier(false, stock.buyRate)}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -220,6 +250,9 @@ export default function Settlement() {
                     }}
                   >
                     #{stock.keyword}
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', marginLeft: '6px', opacity: 0.8 }}>
+                      ×{getMultiplier(true, stock.buyRate)} (매수율 {stock.buyRate}%)
+                    </span>
                   </span>
                 )
               })}

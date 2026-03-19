@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class-Stock 리포트 와이어프레임 v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F7F7FA;--bg2:#F0F0F5;--bg3:#E8E8EE;
+  --surface:#FFFFFF;
+  --t1:#1A1A2E;--t2:#6E6E82;--t3:#A0A0B2;
+  --up:#FF4747;--up-text:#E03030;--up-soft:rgba(255,71,71,.08);
+  --down:#3A7BDE;--down-soft:rgba(58,123,222,.08);
+  --gold:#F0A030;--gold-text:#C07800;--gold-soft:rgba(240,160,48,.08);
+  --mint:#1AB07A;--mint-text:#0D8A5E;--mint-soft:rgba(26,176,122,.08);
+  --border:rgba(0,0,0,.06);--border2:rgba(0,0,0,.10);
+  --shadow:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.03);
+  --shadow-lg:0 2px 8px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.05);
+  --radius:16px;--radius-sm:12px;
+}
+body{background:var(--bg);color:var(--t1);font-family:'Pretendard','Outfit',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+.report{max-width:1100px;margin:0 auto;padding:32px 24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.stat .lbl{font-size:12px;color:var(--t2);margin-bottom:8px}
+.stat .val{font-family:'Outfit',sans-serif;font-size:32px;font-weight:700;letter-spacing:-1px;line-height:1.1}
+.stat .hint{font-size:10px;color:var(--t3);margin-top:6px}
+.section-title{font-size:15px;font-weight:600;color:var(--t1);margin-bottom:14px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-family:'DM Mono',monospace;font-size:11px;font-weight:600}
+.tag{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;padding:2px 6px;border-radius:4px;letter-spacing:.5px}
+
+/* 탭 */
+.tabs{display:flex;border-bottom:2px solid var(--bg2);margin-bottom:24px}
+.tab{flex:none;padding:12px 24px;font-size:14px;font-weight:500;color:var(--t3);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;transition:all .2s}
+.tab:hover{color:var(--t2)}
+.tab.active{color:var(--t1);font-weight:700;border-bottom-color:var(--up)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* 단계 라벨 */
+.step-label{font-size:11px;font-weight:600;color:var(--t3);letter-spacing:1px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.step-num{width:20px;height:20px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--t2)}
+
+/* 학생 테이블 */
+.stu-table{width:100%;border-collapse:collapse}
+.stu-table th{font-size:12px;font-weight:500;color:var(--t3);text-align:left;padding:10px 12px;border-bottom:1px solid var(--border)}
+.stu-table th.right{text-align:right}
+.stu-table td{font-size:13px;padding:12px;border-bottom:1px solid var(--border)}
+.stu-table td.right{text-align:right;font-family:'DM Mono',monospace;font-weight:500}
+.stu-table tr:hover{background:var(--bg)}
+.stu-table tr:last-child td{border-bottom:none}
+.sort-btns{display:flex;gap:6px;margin-bottom:16px}
+.sort-btn{padding:6px 14px;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--t2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:'Pretendard',sans-serif}
+.sort-btn:hover{border-color:var(--border2);color:var(--t1)}
+.sort-btn.active{background:var(--t1);color:#fff;border-color:var(--t1)}
+</style>
+</head>
+<body>
+
+<div class="report">
+
+  <!-- 헤더 -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+    <div>
+      <div style="font-size:11px;color:var(--t3);margin-bottom:4px">수업 리포트</div>
+      <div style="font-size:22px;font-weight:700;color:var(--t1)">3학년 2반 · 과학 · 세포의 에너지</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:13px;color:var(--t2)">2026.03.17</div>
+      <div style="font-size:13px;color:var(--t2)">참여 학생 26/28명</div>
+    </div>
+  </div>
+
+  <!-- 탭 -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('analysis')">수업 분석</button>
+    <button class="tab" onclick="switchTab('students')">학생별 결과</button>
+  </div>
+
+  <!-- ═══════════════════════════════ -->
+  <!-- 탭 1: 수업 분석                  -->
+  <!-- ═══════════════════════════════ -->
+  <div id="analysis" class="tab-content active">
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px">
+      <div class="stat">
+        <div class="lbl">학급 평균 정확률</div>
+        <div class="val" style="color:var(--up-text)">72%</div>
+        <div class="hint">핵심 종목 투자 비율 평균</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">참여율</div>
+        <div class="val" style="color:var(--mint-text)">93%</div>
+        <div class="hint">26명 중 24명 거래</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">총 거래 건수</div>
+        <div class="val" style="color:var(--t1)">847</div>
+        <div class="hint">이번 수업 누적</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <!-- 좌: 인지-확신 갭 -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <span class="section-title" style="margin-bottom:0">인지-확신 갭</span>
+          <div style="display:flex;gap:10px;font-size:10px">
+            <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:var(--gold)"></span><span style="color:var(--gold-text)">찜</span></span>
+            <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:var(--up)"></span><span style="color:var(--up-text)">매수</span></span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <div style="font-size:12px;font-weight:500;margin-bottom:4px">★ #미토콘드리아</div>
+            <div style="display:flex;gap:4px">
+              <div style="flex:1;height:24px;background:rgba(240,160,48,.1);border-radius:6px;overflow:hidden;position:relative"><div style="height:100%;width:90%;background:var(--gold);border-radius:6px"></div><span class="pill" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--gold-text);background:rgba(255,255,255,.9)">90%</span></div>
+              <div style="width:1px;height:18px;background:var(--border2);align-self:center"></div>
+              <div style="flex:1;height:24px;background:rgba(255,71,71,.1);border-radius:6px;overflow:hidden;position:relative"><div style="height:100%;width:87%;background:var(--up);border-radius:6px"></div><span class="pill" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--up-text);background:rgba(255,255,255,.9)">87%</span></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:500;margin-bottom:4px">★ #세포호흡</div>
+            <div style="display:flex;gap:4px">
+              <div style="flex:1;height:24px;background:rgba(240,160,48,.1);border-radius:6px;overflow:hidden;position:relative"><div style="height:100%;width:60%;background:var(--gold);border-radius:6px"></div><span class="pill" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--gold-text);background:rgba(255,255,255,.9)">60%</span></div>
+              <div style="width:1px;height:18px;background:var(--border2);align-self:center"></div>
+              <div style="flex:1;height:24px;background:rgba(255,71,71,.1);border-radius:6px;overflow:hidden;position:relative"><div style="height:100%;width:52%;background:var(--up);border-radius:6px"></div><span class="pill" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--up-text);background:rgba(255,255,255,.9)">52%</span></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:500;margin-bottom:4px">★ #ATP <span class="tag" style="background:var(--up-soft);color:var(--up-text);margin-left:4px">⚠️ 갭 22%</span></div>
+            <div style="display:flex;gap:4px">
+              <div style="flex:1;height:24px;background:rgba(240,160,48,.1);border-radius:6px;overflow:hidden;position:relative"><div style="height:100%;width:45%;background:var(--gold);border-radius:6px"></div><span class="pill" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--gold-text);background:rgba(255,255,255,.9)">45%</span></div>
+              <div style="width:1px;height:18px;background:var(--border2);align-self:center"></div>
+              <div style="flex:1;height:24px;background:rgba(255,71,71,.1);border-radius:6px;overflow:hidden;position:relative"><div style="height:100%;width:23%;background:var(--up);border-radius:6px"></div><span class="pill" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--up-text);background:rgba(255,255,255,.9)">23%</span></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:500;margin-bottom:4px">#엽록체</div>
+            <div style="display:flex;gap:4px">
+              <div style="flex:1;height:24px;background:rgba(240,160,48,.1);border-radius:6px;overflow:hidden;position:relative"><div style="height:100%;width:30%;background:var(--gold);border-radius:6px"></div><span class="pill" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--gold-text);background:rgba(255,255,255,.9)">30%</span></div>
+              <div style="width:1px;height:18px;background:var(--border2);align-self:center"></div>
+              <div style="flex:1;height:24px;background:rgba(255,71,71,.1);border-radius:6px;overflow:hidden;position:relative"><div style="height:100%;width:18%;background:var(--up);border-radius:6px"></div><span class="pill" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--up-text);background:rgba(255,255,255,.9)">18%</span></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--gold-text);margin-bottom:4px">🔒 #광합성 (히든)</div>
+            <div style="display:flex;gap:4px">
+              <div style="flex:1;height:24px;background:rgba(240,160,48,.1);border-radius:6px;overflow:hidden;position:relative"><div style="height:100%;width:15%;background:var(--gold);border-radius:6px"></div><span class="pill" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--gold-text);background:rgba(255,255,255,.9)">15%</span></div>
+              <div style="width:1px;height:18px;background:var(--border2);align-self:center"></div>
+              <div style="flex:1;height:24px;background:rgba(255,71,71,.1);border-radius:6px;overflow:hidden;position:relative"><div style="height:100%;width:8%;background:var(--up);border-radius:6px"></div><span class="pill" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--up-text);background:rgba(255,255,255,.9)">8%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 우: 사분면 -->
+      <div class="card">
+        <div class="section-title">개념 이해도 매트릭스</div>
+        <div style="position:relative;width:100%;height:260px">
+          <canvas id="quadrant-chart"></canvas>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px;font-size:10px;color:var(--t2)">
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#E03030"></span>핵심</span>
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#C07800"></span>히든</span>
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#888"></span>일반</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px">
+          <div style="padding:7px 8px;background:var(--gold-soft);border-radius:6px;font-size:10px"><span style="font-weight:600;color:var(--gold-text)">좌상 — 인지-확신 갭</span><div style="color:var(--t2);margin-top:1px">다시 설명 필요</div></div>
+          <div style="padding:7px 8px;background:var(--mint-soft);border-radius:6px;font-size:10px"><span style="font-weight:600;color:var(--mint-text)">우상 — 잘 이해</span><div style="color:var(--t2);margin-top:1px">빠르게 복습만</div></div>
+          <div style="padding:7px 8px;background:var(--up-soft);border-radius:6px;font-size:10px"><span style="font-weight:600;color:var(--up-text)">좌하 — 놓친 개념</span><div style="color:var(--t2);margin-top:1px">처음부터 다시</div></div>
+          <div style="padding:7px 8px;background:var(--down-soft);border-radius:6px;font-size:10px"><span style="font-weight:600;color:var(--down)">우하 — 소수만 확신</span><div style="color:var(--t2);margin-top:1px">또래 교수법</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 놓친 개념 알림 — 풀 와이드 (가장 중요한 액션) -->
+    <div style="padding:18px 20px;background:var(--up-soft);border:1px solid rgba(255,71,71,.12);border-radius:var(--radius-sm);margin-bottom:28px;display:flex;gap:12px;align-items:flex-start">
+      <span style="font-size:18px;flex-shrink:0">⚠️</span>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--up-text);margin-bottom:4px">다음 수업에서 짚어야 할 개념</div>
+        <div style="font-size:13px;color:var(--t1);line-height:1.6"><b style="color:var(--up-text)">ATP</b> — 핵심 개념이지만 매수율 23%. 찜하기율은 45%로 중요성은 인식했지만 확신 부족. <b>다른 방식으로 다시 설명이 필요합니다.</b></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:20px">
+      <!-- 학생 행동 분석 -->
+      <div class="card">
+        <div class="section-title">학생 행동 분석</div>
+        <div style="font-size:10px;color:var(--t3);display:grid;grid-template-columns:1fr 55px 55px 55px;gap:4px;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+          <span>종목</span><span style="text-align:center">매도율</span><span style="text-align:center">추가매수</span><span style="text-align:center">찜→매수</span>
+        </div>
+        <div style="font-size:12px;display:grid;grid-template-columns:1fr 55px 55px 55px;gap:4px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+          <span style="font-weight:500">#미토콘드리아</span>
+          <span style="text-align:center;font-family:'DM Mono',monospace">5%</span>
+          <span style="text-align:center;font-family:'DM Mono',monospace;color:var(--mint-text);font-weight:600">35%</span>
+          <span style="text-align:center;font-family:'DM Mono',monospace">92%</span>
+        </div>
+        <div style="font-size:12px;display:grid;grid-template-columns:1fr 55px 55px 55px;gap:4px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+          <span style="font-weight:500">#세포호흡</span>
+          <span style="text-align:center;font-family:'DM Mono',monospace">12%</span>
+          <span style="text-align:center;font-family:'DM Mono',monospace">18%</span>
+          <span style="text-align:center;font-family:'DM Mono',monospace">78%</span>
+        </div>
+        <div style="font-size:12px;display:grid;grid-template-columns:1fr 55px 55px 55px;gap:4px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+          <span style="font-weight:500">#ATP</span>
+          <span style="text-align:center;font-family:'DM Mono',monospace;color:var(--up-text);font-weight:600">42%</span>
+          <span style="text-align:center;font-family:'DM Mono',monospace">8%</span>
+          <span style="text-align:center;font-family:'DM Mono',monospace">45%</span>
+        </div>
+        <div style="font-size:12px;display:grid;grid-template-columns:1fr 55px 55px 55px;gap:4px;align-items:center;padding:7px 0">
+          <span style="font-weight:500">#엽록체</span>
+          <span style="text-align:center;font-family:'DM Mono',monospace">8%</span>
+          <span style="text-align:center;font-family:'DM Mono',monospace">5%</span>
+          <span style="text-align:center;font-family:'DM Mono',monospace">55%</span>
+        </div>
+        <div style="margin-top:10px;padding:10px;background:var(--gold-soft);border-radius:8px;font-size:11px;color:var(--t1);line-height:1.4">
+          💡 <b style="color:var(--up-text)">#ATP</b> 매도율 42% — 확신 번복. <b style="color:var(--mint-text)">#미토콘드리아</b> 추가매수 35% — 효과적.
+        </div>
+      </div>
+
+      <!-- 매수 타이밍 -->
+      <div class="card">
+        <div class="section-title">매수 타이밍 분석</div>
+        <div style="font-size:11px;color:var(--t2);margin-bottom:12px">즉시 매수일수록 확신이 높음</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div style="font-size:12px;font-weight:500;margin-bottom:3px">#미토콘드리아</div>
+            <div style="display:flex;height:20px;border-radius:5px;overflow:hidden">
+              <div style="width:80%;background:var(--mint);display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:600">즉시 80%</div>
+              <div style="width:15%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#5A3800;font-size:9px">15%</div>
+              <div style="width:5%;background:var(--bg3)"></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:500;margin-bottom:3px">#세포호흡</div>
+            <div style="display:flex;height:20px;border-radius:5px;overflow:hidden">
+              <div style="width:45%;background:var(--mint);display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:600">즉시 45%</div>
+              <div style="width:35%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#5A3800;font-size:9px">35%</div>
+              <div style="width:20%;background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:9px">20%</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:500;margin-bottom:3px">#ATP</div>
+            <div style="display:flex;height:20px;border-radius:5px;overflow:hidden">
+              <div style="width:15%;background:var(--mint);display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px">15%</div>
+              <div style="width:30%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#5A3800;font-size:9px">30%</div>
+              <div style="width:55%;background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:9px;font-weight:600">마감직전 55%</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;font-size:10px;color:var(--t2)">
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:var(--mint)"></span>즉시</span>
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:var(--gold)"></span>중간</span>
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:var(--bg3)"></span>마감직전</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:28px">
+      <!-- 학급 투자 성향 -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <span class="section-title" style="margin-bottom:0">학급 투자 성향</span>
+          <span style="background:var(--up-soft);color:var(--up-text);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">양극화형</span>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <!-- 만장일치 종목 -->
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--mint-soft);border-radius:8px">
+            <div style="width:36px;height:36px;border-radius:8px;background:var(--mint);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;color:#fff">✅</div>
+            <div style="flex:1">
+              <div style="font-size:11px;color:var(--t2)">만장일치 종목</div>
+              <div style="font-size:14px;font-weight:700;color:var(--mint-text)">#미토콘드리아</div>
+            </div>
+            <div style="font-size:11px;color:var(--mint-text);text-align:right;font-weight:600">87%가<br>동일 판단</div>
+          </div>
+
+          <!-- 가장 논쟁적인 종목 -->
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--up-soft);border-radius:8px">
+            <div style="width:36px;height:36px;border-radius:8px;background:var(--up);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;color:#fff">🔥</div>
+            <div style="flex:1">
+              <div style="font-size:11px;color:var(--t2)">가장 논쟁적인 종목</div>
+              <div style="font-size:14px;font-weight:700;color:var(--up-text)">#세포호흡</div>
+            </div>
+            <div style="font-size:11px;color:var(--up-text);text-align:right;font-weight:600">매수 52%<br>미매수 48%</div>
+          </div>
+
+          <!-- 총평 (논쟁 종목 하단) -->
+          <div style="padding:10px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--t1);line-height:1.5">
+            <b style="color:var(--up-text)">#미토콘드리아</b>와 <b style="color:var(--gold-text)">#세포호흡</b> 사이에서 의견이 갈렸습니다. 비교 토론 활동을 권장합니다.
+          </div>
+        </div>
+      </div>
+
+      <!-- 학생 분포 -->
+      <div class="card">
+        <div class="section-title">학생 분포 분석</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div style="text-align:center;padding:10px;background:var(--bg);border-radius:10px">
+            <div style="font-size:11px;font-weight:600;color:var(--t1);margin-bottom:6px">집중도</div>
+            <svg viewBox="0 0 100 100" style="width:80px;height:80px">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#1AB07A" stroke-width="14" stroke-dasharray="155 84" stroke-dashoffset="60" stroke-linecap="round"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#FF4747" stroke-width="14" stroke-dasharray="84 155" stroke-dashoffset="-95" stroke-linecap="round"/>
+              <text x="50" y="47" text-anchor="middle" font-family="Outfit,sans-serif" font-size="15" font-weight="700" fill="#1A1A2E">65%</text>
+              <text x="50" y="60" text-anchor="middle" font-size="8" fill="#6E6E82">분산</text>
+            </svg>
+            <div style="display:flex;justify-content:center;gap:8px;margin-top:4px;font-size:9px">
+              <span style="color:var(--up-text)">● 몰빵 35%</span>
+              <span style="color:var(--mint-text)">● 분산 65%</span>
+            </div>
+          </div>
+          <div style="text-align:center;padding:10px;background:var(--bg);border-radius:10px">
+            <div style="font-size:11px;font-weight:600;color:var(--t1);margin-bottom:6px">수익률</div>
+            <svg viewBox="0 0 100 100" style="width:80px;height:80px">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#FF4747" stroke-width="14" stroke-dasharray="72 167" stroke-dashoffset="60" stroke-linecap="round"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#F0A030" stroke-width="14" stroke-dasharray="120 119" stroke-dashoffset="-12" stroke-linecap="round"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#C8C8D0" stroke-width="14" stroke-dasharray="48 191" stroke-dashoffset="-132" stroke-linecap="round"/>
+              <text x="50" y="47" text-anchor="middle" font-family="Outfit,sans-serif" font-size="14" font-weight="700" fill="#1A1A2E">28명</text>
+              <text x="50" y="60" text-anchor="middle" font-size="8" fill="#6E6E82">전체</text>
+            </svg>
+            <div style="display:flex;justify-content:center;gap:4px;margin-top:4px;font-size:9px">
+              <span style="color:var(--up-text)">● 상위</span>
+              <span style="color:var(--gold-text)">● 중위</span>
+              <span style="color:var(--t3)">● 하위</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">수업 추이</div>
+      <div style="display:flex;gap:12px;margin-bottom:10px;font-size:10px">
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:12px;height:2px;border-radius:1px;background:var(--up)"></span><span style="color:var(--up-text)">정확률</span></span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:12px;height:2px;border-radius:1px;background:var(--mint)"></span><span style="color:var(--mint-text)">참여율</span></span>
+      </div>
+      <div style="position:relative;width:100%;height:200px">
+        <svg viewBox="0 0 500 160" style="width:100%;height:100%">
+          <line x1="40" y1="10" x2="480" y2="10" stroke="rgba(0,0,0,.04)" stroke-width="0.5"/>
+          <line x1="40" y1="45" x2="480" y2="45" stroke="rgba(0,0,0,.04)" stroke-width="0.5"/>
+          <line x1="40" y1="75" x2="480" y2="75" stroke="rgba(0,0,0,.06)" stroke-width="0.5" stroke-dasharray="4 3"/>
+          <line x1="40" y1="105" x2="480" y2="105" stroke="rgba(0,0,0,.04)" stroke-width="0.5"/>
+          <line x1="40" y1="135" x2="480" y2="135" stroke="rgba(0,0,0,.04)" stroke-width="0.5"/>
+          <text x="35" y="14" text-anchor="end" fill="#A0A0B2" font-size="9" font-family="DM Mono,monospace">100</text>
+          <text x="35" y="49" text-anchor="end" fill="#A0A0B2" font-size="9" font-family="DM Mono,monospace">75</text>
+          <text x="35" y="79" text-anchor="end" fill="#A0A0B2" font-size="9" font-family="DM Mono,monospace">50</text>
+          <text x="35" y="109" text-anchor="end" fill="#A0A0B2" font-size="9" font-family="DM Mono,monospace">25</text>
+          <text x="80" y="150" text-anchor="middle" fill="#A0A0B2" font-size="9">3/10</text>
+          <text x="180" y="150" text-anchor="middle" fill="#A0A0B2" font-size="9">3/12</text>
+          <text x="280" y="150" text-anchor="middle" fill="#A0A0B2" font-size="9">3/14</text>
+          <text x="380" y="150" text-anchor="middle" fill="#A0A0B2" font-size="9">3/15</text>
+          <text x="460" y="150" text-anchor="middle" fill="#E03030" font-size="9" font-weight="600">오늘</text>
+          <polyline points="80,68 180,85 280,52 380,73 460,40" fill="none" stroke="#FF4747" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="80" cy="68" r="3.5" fill="#fff" stroke="#FF4747" stroke-width="1.5"/>
+          <circle cx="180" cy="85" r="3.5" fill="#fff" stroke="#FF4747" stroke-width="1.5"/>
+          <circle cx="280" cy="52" r="3.5" fill="#fff" stroke="#FF4747" stroke-width="1.5"/>
+          <circle cx="380" cy="73" r="3.5" fill="#fff" stroke="#FF4747" stroke-width="1.5"/>
+          <circle cx="460" cy="40" r="5" fill="#FF4747" stroke="#fff" stroke-width="1.5"/>
+          <text x="80" y="60" text-anchor="middle" fill="#E03030" font-size="9" font-weight="600" font-family="DM Mono,monospace">55%</text>
+          <text x="180" y="99" text-anchor="middle" fill="#E03030" font-size="9" font-weight="600" font-family="DM Mono,monospace">42%</text>
+          <text x="280" y="44" text-anchor="middle" fill="#E03030" font-size="9" font-weight="600" font-family="DM Mono,monospace">65%</text>
+          <text x="380" y="87" text-anchor="middle" fill="#E03030" font-size="9" font-weight="600" font-family="DM Mono,monospace">52%</text>
+          <text x="460" y="32" text-anchor="middle" fill="#E03030" font-size="10" font-weight="700" font-family="DM Mono,monospace">72%</text>
+          <polyline points="80,28 180,23 280,18 380,25 460,13" fill="none" stroke="#1AB07A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="80" cy="28" r="3.5" fill="#fff" stroke="#1AB07A" stroke-width="1.5"/>
+          <circle cx="180" cy="23" r="3.5" fill="#fff" stroke="#1AB07A" stroke-width="1.5"/>
+          <circle cx="280" cy="18" r="3.5" fill="#fff" stroke="#1AB07A" stroke-width="1.5"/>
+          <circle cx="380" cy="25" r="3.5" fill="#fff" stroke="#1AB07A" stroke-width="1.5"/>
+          <circle cx="460" cy="13" r="5" fill="#1AB07A" stroke="#fff" stroke-width="1.5"/>
+          <text x="80" y="20" text-anchor="middle" fill="#0D8A5E" font-size="9" font-weight="600" font-family="DM Mono,monospace">85%</text>
+          <text x="180" y="15" text-anchor="middle" fill="#0D8A5E" font-size="9" font-weight="600" font-family="DM Mono,monospace">88%</text>
+          <text x="280" y="10" text-anchor="middle" fill="#0D8A5E" font-size="9" font-weight="600" font-family="DM Mono,monospace">90%</text>
+          <text x="380" y="17" text-anchor="middle" fill="#0D8A5E" font-size="9" font-weight="600" font-family="DM Mono,monospace">87%</text>
+          <text x="460" y="7" text-anchor="middle" fill="#0D8A5E" font-size="10" font-weight="700" font-family="DM Mono,monospace">93%</text>
+        </svg>
+      </div>
+      <div style="display:flex;gap:20px;font-size:13px;color:var(--t1)">
+        <span>정확률 <b style="color:var(--up-text)">+20%p ▲</b></span>
+        <span>참여율 <b style="color:var(--mint-text)">+6%p ▲</b></span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════ -->
+  <!-- 탭 2: 학생별 결과                -->
+  <!-- ═══════════════════════════════ -->
+  <div id="students" class="tab-content">
+
+    <div class="sort-btns">
+      <button class="sort-btn active">수익률순</button>
+      <button class="sort-btn">정확률순</button>
+      <button class="sort-btn">이름순</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="stu-table">
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th>닉네임</th>
+            <th class="right">수익률</th>
+            <th class="right">정확률</th>
+            <th class="right">투자 종목</th>
+            <th class="right">투자 금액</th>
+            <th style="width:50px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:var(--t3)">1</td>
+            <td style="font-weight:600">🏆 꿀장어</td>
+            <td class="right" style="color:var(--up-text);font-weight:600">+86%</td>
+            <td class="right">78%</td>
+            <td class="right">3종목</td>
+            <td class="right">8,000pt</td>
+            <td style="text-align:right;color:var(--t3);cursor:pointer">›</td>
+          </tr>
+          <tr>
+            <td style="color:var(--t3)">2</td>
+            <td style="font-weight:600">수학왕</td>
+            <td class="right" style="color:var(--up-text);font-weight:600">+72%</td>
+            <td class="right">75%</td>
+            <td class="right">4종목</td>
+            <td class="right">9,000pt</td>
+            <td style="text-align:right;color:var(--t3);cursor:pointer">›</td>
+          </tr>
+          <tr>
+            <td style="color:var(--t3)">3</td>
+            <td style="font-weight:600">과학러버</td>
+            <td class="right" style="color:var(--up-text)">+65%</td>
+            <td class="right">70%</td>
+            <td class="right">2종목</td>
+            <td class="right">7,000pt</td>
+            <td style="text-align:right;color:var(--t3);cursor:pointer">›</td>
+          </tr>
+          <tr>
+            <td style="color:var(--t3)">4</td>
+            <td style="font-weight:600">별똥별</td>
+            <td class="right" style="color:var(--up-text)">+50%</td>
+            <td class="right">60%</td>
+            <td class="right">3종목</td>
+            <td class="right">6,000pt</td>
+            <td style="text-align:right;color:var(--t3);cursor:pointer">›</td>
+          </tr>
+          <tr>
+            <td style="color:var(--t3)">5</td>
+            <td style="font-weight:600">지구탐험가</td>
+            <td class="right" style="color:var(--gold-text)">+35%</td>
+            <td class="right">50%</td>
+            <td class="right">2종목</td>
+            <td class="right">5,000pt</td>
+            <td style="text-align:right;color:var(--t3);cursor:pointer">›</td>
+          </tr>
+          <tr>
+            <td style="color:var(--t3)">6</td>
+            <td style="font-weight:600">호기심왕</td>
+            <td class="right" style="color:var(--gold-text)">+20%</td>
+            <td class="right">45%</td>
+            <td class="right">1종목</td>
+            <td class="right">3,000pt</td>
+            <td style="text-align:right;color:var(--t3);cursor:pointer">›</td>
+          </tr>
+          <tr>
+            <td style="color:var(--t3)">7</td>
+            <td style="font-weight:600">뉴턴주니어</td>
+            <td class="right" style="color:var(--gold-text)">+10%</td>
+            <td class="right">40%</td>
+            <td class="right">2종목</td>
+            <td class="right">4,000pt</td>
+            <td style="text-align:right;color:var(--t3);cursor:pointer">›</td>
+          </tr>
+          <tr>
+            <td style="color:var(--t3)">8</td>
+            <td style="font-weight:600">세포마스터</td>
+            <td class="right" style="color:var(--down)">-15%</td>
+            <td class="right">20%</td>
+            <td class="right">1종목</td>
+            <td class="right">5,000pt</td>
+            <td style="text-align:right;color:var(--t3);cursor:pointer">›</td>
+          </tr>
+          <tr>
+            <td style="color:var(--t3)">9</td>
+            <td style="font-weight:600">실험실쥐</td>
+            <td class="right" style="color:var(--down)">-25%</td>
+            <td class="right">15%</td>
+            <td class="right">1종목</td>
+            <td class="right">4,000pt</td>
+            <td style="text-align:right;color:var(--t3);cursor:pointer">›</td>
+          </tr>
+          <tr>
+            <td style="color:var(--t3)">10</td>
+            <td style="font-weight:500;color:var(--t3)">미참여자</td>
+            <td class="right" style="color:var(--t3)">—</td>
+            <td class="right" style="color:var(--t3)">—</td>
+            <td class="right" style="color:var(--t3)">0종목</td>
+            <td class="right" style="color:var(--t3)">0pt</td>
+            <td style="text-align:right;color:var(--t3)">›</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 하단 요약 -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px">
+      <div style="padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center">
+        <div style="font-size:11px;color:var(--t2);margin-bottom:4px">평균 수익률</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:24px;font-weight:700;color:var(--up-text)">+47%</div>
+      </div>
+      <div style="padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center">
+        <div style="font-size:11px;color:var(--t2);margin-bottom:4px">평균 정확률</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:24px;font-weight:700;color:var(--mint-text)">55%</div>
+      </div>
+      <div style="padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center">
+        <div style="font-size:11px;color:var(--t2);margin-bottom:4px">미참여</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:24px;font-weight:700;color:var(--t3)">2명</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+function switchTab(id){
+  document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+document.querySelectorAll('.sort-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+window.addEventListener('load',()=>{
+  const qCanvas=document.getElementById('quadrant-chart');
+  if(!qCanvas)return;
+  const concepts=[
+    {x:90,y:87,label:'#미토콘드리아',r:15,type:'core'},
+    {x:60,y:52,label:'#세포호흡',r:12,type:'core'},
+    {x:45,y:23,label:'#ATP',r:10,type:'core'},
+    {x:30,y:18,label:'#엽록체',r:8,type:'normal'},
+    {x:15,y:8,label:'#광합성',r:8,type:'hidden'},
+  ];
+  const cMap={core:'#E03030',hidden:'#C07800',normal:'#888888'};
+  new Chart(qCanvas,{
+    type:'bubble',
+    data:{datasets:[{data:concepts.map(d=>({x:d.x,y:d.y,r:d.r})),backgroundColor:concepts.map(d=>cMap[d.type]+'30'),borderColor:concepts.map(d=>cMap[d.type]),borderWidth:2}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      layout:{padding:{top:18,right:10,bottom:4,left:4}},
+      scales:{
+        x:{title:{display:true,text:'찜하기율 (인지)',color:'#6E6E82',font:{size:10}},min:0,max:100,grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A0A0B2',stepSize:25,callback:v=>v+'%',font:{size:8}},border:{color:'rgba(0,0,0,0.04)'}},
+        y:{title:{display:true,text:'매수율 (확신)',color:'#6E6E82',font:{size:10}},min:0,max:100,grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A0A0B2',stepSize:25,callback:v=>v+'%',font:{size:8}},border:{color:'rgba(0,0,0,0.04)'}}
+      },
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const d=concepts[ctx.dataIndex];return d.label+': 찜 '+d.x+'% / 매수 '+d.y+'%'}}}}
+    },
+    plugins:[{
+      id:'ql',
+      afterDraw(chart){
+        const{ctx,chartArea:{left,right,top,bottom}}=chart;
+        const mx=(left+right)/2,my=(top+bottom)/2;
+        ctx.save();
+        ctx.strokeStyle='rgba(0,0,0,0.07)';ctx.lineWidth=1;ctx.setLineDash([5,3]);
+        ctx.beginPath();ctx.moveTo(mx,top);ctx.lineTo(mx,bottom);ctx.moveTo(left,my);ctx.lineTo(right,my);ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font='500 9px Pretendard,sans-serif';ctx.textAlign='center';
+        ctx.fillStyle='rgba(13,138,94,0.5)';ctx.fillText('잘 이해',mx+(right-mx)/2,top+12);
+        ctx.fillStyle='rgba(192,120,0,0.5)';ctx.fillText('인지-확신 갭',left+(mx-left)/2,top+12);
+        ctx.fillStyle='rgba(163,45,45,0.5)';ctx.fillText('놓친 개념',left+(mx-left)/2,bottom-4);
+        ctx.fillStyle='rgba(24,95,165,0.5)';ctx.fillText('소수만 확신',mx+(right-mx)/2,bottom-4);
+        concepts.forEach((d,i)=>{
+          const pt=chart.getDatasetMeta(0).data[i];
+          if(!pt)return;
+          ctx.font='600 9px Pretendard,sans-serif';ctx.fillStyle='#1A1A2E';ctx.textAlign='center';
+          ctx.fillText(d.label,pt.x,pt.y-d.r-4);
+        });
+        ctx.restore();
+      }
+    }]
+  });
+});
+</script>
+
+</body>
+</html>
