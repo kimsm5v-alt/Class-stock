@@ -30,3 +30,9 @@ dist-ssr
 
 # Vercel
 .vercel
+
+# Claude Code
+.claude/
+
+# TypeScript build cache
+tsconfig.tsbuildinfo
