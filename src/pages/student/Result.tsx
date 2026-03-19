@@ -208,7 +208,9 @@ export default function StudentResult() {
                             fontSize: '11px', fontFamily: 'var(--font-mono)',
                             color: stock.is_core ? 'var(--color-cs-up-text)' : 'var(--color-cs-down)',
                           }}>
-                            {stock.is_core ? `×${stock.multiplier} 폭등 (매수율 ${stock.buyRate}%)` : `×${stock.multiplier} 폭락 (매수율 ${stock.buyRate}%)`}
+                            {stock.is_core
+                              ? `▲${Math.round((stock.multiplier - 1) * 100)}% (매수율 ${stock.buyRate}%)`
+                              : `▼${Math.round((1 - stock.multiplier) * 100)}% (매수율 ${stock.buyRate}%)`}
                           </div>
                         </>
                       ) : (
@@ -216,7 +218,7 @@ export default function StudentResult() {
                           fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 600,
                           color: 'var(--color-cs-gold-text)',
                         }}>
-                          {stock.is_core ? `×${stock.multiplier} 놓침 (매수율 ${stock.buyRate}%)` : '—'}
+                          {stock.is_core ? `▲${Math.round((stock.multiplier - 1) * 100)}% 놓침 (매수율 ${stock.buyRate}%)` : '—'}
                         </div>
                       )}
                     </div>
@@ -264,7 +266,7 @@ export default function StudentResult() {
                         fontSize: '11px', fontFamily: 'var(--font-mono)',
                         color: 'var(--color-cs-up-text)',
                       }}>
-                        ×{stock.multiplier} 폭등 (매수율 {stock.buyRate}%)
+                        ▲{Math.round((stock.multiplier - 1) * 100)}% (매수율 {stock.buyRate}%)
                       </div>
                     </div>
                   )}
@@ -317,7 +319,7 @@ export default function StudentResult() {
                       fontSize: '11px', fontFamily: 'var(--font-mono)',
                       color: 'var(--color-cs-down)',
                     }}>
-                      ×{stock.multiplier} 폭락 (매수율 {stock.buyRate}%)
+                      ▼{Math.round((1 - stock.multiplier) * 100)}% (매수율 {stock.buyRate}%)
                     </div>
                   </div>
                 )}
@@ -346,22 +348,22 @@ export default function StudentResult() {
             padding: '16px',
           }}>
             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-cs-primary)', marginBottom: '12px' }}>
-              📊 배율 안내 — 매수율이 높을수록 배율 변동!
+              📊 등락률 안내 — 매수율이 높을수록 등락 폭 변동!
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               {/* 핵심 종목 */}
               <div>
                 <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-cs-up-text)', marginBottom: '6px' }}>
-                  ★ 핵심 종목 — 다 같이 맞추면 보상↑
+                  ★ 핵심 종목 — 다 같이 맞추면 수익↑
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                   {[
-                    { range: '매수율 80%+', mult: '×4' },
-                    { range: '매수율 60~80%', mult: '×3' },
-                    { range: '매수율 40~60%', mult: '×2.5' },
-                    { range: '매수율 ~40%', mult: '×2' },
-                  ].map(({ range, mult }) => (
-                    <div key={mult} style={{
+                    { range: '매수율 80%+', rate: '▲300%' },
+                    { range: '매수율 60~80%', rate: '▲200%' },
+                    { range: '매수율 40~60%', rate: '▲150%' },
+                    { range: '매수율 ~40%', rate: '▲100%' },
+                  ].map(({ range, rate }) => (
+                    <div key={rate} style={{
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                       padding: '5px 10px',
                       background: 'var(--color-cs-up-soft)',
@@ -369,7 +371,7 @@ export default function StudentResult() {
                       fontSize: '11px',
                     }}>
                       <span style={{ color: 'var(--color-cs-secondary)' }}>{range}</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--color-cs-up-text)' }}>{mult}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--color-cs-up-text)' }}>{rate}</span>
                     </div>
                   ))}
                 </div>
@@ -381,12 +383,12 @@ export default function StudentResult() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                   {[
-                    { range: '매수율 80%+', mult: '×0.3' },
-                    { range: '매수율 60~80%', mult: '×0.4' },
-                    { range: '매수율 40~60%', mult: '×0.5' },
-                    { range: '매수율 ~40%', mult: '×0.7' },
-                  ].map(({ range, mult }) => (
-                    <div key={mult} style={{
+                    { range: '매수율 80%+', rate: '▼70%' },
+                    { range: '매수율 60~80%', rate: '▼60%' },
+                    { range: '매수율 40~60%', rate: '▼50%' },
+                    { range: '매수율 ~40%', rate: '▼30%' },
+                  ].map(({ range, rate }) => (
+                    <div key={rate} style={{
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                       padding: '5px 10px',
                       background: 'rgba(58,123,222,0.06)',
@@ -394,7 +396,7 @@ export default function StudentResult() {
                       fontSize: '11px',
                     }}>
                       <span style={{ color: 'var(--color-cs-secondary)' }}>{range}</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--color-cs-down)' }}>{mult}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--color-cs-down)' }}>{rate}</span>
                     </div>
                   ))}
                 </div>

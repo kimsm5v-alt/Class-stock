@@ -152,6 +152,7 @@ export default function LiveSession() {
   const [tradeDuration, setTradeDuration] = useState(60)
   const [countdown, setCountdown] = useState<number | null>(null)
   const autoClosedRef = useRef(false)
+  const [hasTraded, setHasTraded] = useState(false) // 거래가 한 번이라도 열렸다 닫혔는지
 
   // 데이터 로드 및 상태 동기화
   const syncData = () => {
@@ -185,6 +186,15 @@ export default function LiveSession() {
     setBookmarks(allBookmarks)
     setHoldings(allHoldings)
     setStudents(studentsData)
+
+    // 거래 이력 확인 — trades가 있거나, active 상태에서 holdings가 있으면 거래했던 것
+    if (!hasTraded) {
+      const stockIds = new Set(stocksData.map(s => s.id))
+      const sessionTrades = mockStore.trades.filter(t => stockIds.has(t.stock_id))
+      if (sessionTrades.length > 0 || (sessionData?.status === 'active' && allHoldings.length > 0)) {
+        setHasTraded(true)
+      }
+    }
 
     const stocksWithStats: StockWithStats[] = stocksData.map(stock => {
       const stockBookmarks = allBookmarks.filter(b => b.stock_id === stock.id)
@@ -222,6 +232,7 @@ export default function LiveSession() {
       if (remaining <= 0 && !autoClosedRef.current && id) {
         autoClosedRef.current = true
         useMockStore.getState().updateSessionStatus(id, 'active', null)
+        setHasTraded(true)
       }
     }
 
@@ -243,6 +254,7 @@ export default function LiveSession() {
   const handleCloseTrading = () => {
     if (!id) return
     useMockStore.getState().updateSessionStatus(id, 'active', null)
+    setHasTraded(true)
   }
 
   const handleExtendTrading = (extraSeconds: number) => {
@@ -391,14 +403,30 @@ export default function LiveSession() {
               </button>
             </>
           )}
-          <button
-            onClick={handleEndSession}
-            disabled={isTrading}
-            className="cs-btn-secondary"
-            style={{ marginTop: '12px', opacity: isTrading ? 0.5 : 1 }}
-          >
-            장 마감 → 정산
-          </button>
+          {(() => {
+            const canSettle = hasTraded && !isTrading
+            return (
+              <>
+                <button
+                  onClick={handleEndSession}
+                  disabled={!canSettle}
+                  className={canSettle ? 'cs-btn-primary' : 'cs-btn-secondary'}
+                  style={{
+                    marginTop: '12px',
+                    opacity: canSettle ? 1 : 0.4,
+                    cursor: canSettle ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  장 마감 → 정산
+                </button>
+                {!canSettle && (
+                  <p style={{ textAlign: 'center', fontSize: '11px', color: 'var(--color-cs-hint)', marginTop: '6px' }}>
+                    {isTrading ? '거래 마감 후 정산 가능합니다' : '거래를 한 번 이상 진행해야 정산할 수 있습니다'}
+                  </p>
+                )}
+              </>
+            )
+          })()}
         </div>
       </aside>
 
@@ -456,23 +484,41 @@ export default function LiveSession() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {stocks.filter(s => s.is_revealed).sort((a, b) => b.buyCount - a.buyCount).map((stock) => {
-              const bookmarkRate = totalStudents > 0 ? Math.round((stock.bookmarkCount / totalStudents) * 100) : 0
-              const buyRate = isTrading || session?.status === 'closed'
+            {/* display_order 순서 유지 — 좌측 사이드바와 동일 */}
+            {[...stocks].sort((a, b) => a.display_order - b.display_order).map((stock) => {
+              const isRevealed = stock.is_revealed
+              const bookmarkRate = isRevealed && totalStudents > 0 ? Math.round((stock.bookmarkCount / totalStudents) * 100) : 0
+              const buyRate = isRevealed && (isTrading || session?.status === 'closed')
                 ? (totalStudents > 0 ? Math.round((stock.buyCount / totalStudents) * 100) : 0)
                 : 0
               const gap = bookmarkRate - buyRate
-              const hasGap = gap >= 20
+              const hasGap = isRevealed && gap >= 20
 
               return (
-                <div key={stock.id} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 1px 1fr', gap: '8px', alignItems: 'center' }}>
+                <div
+                  key={stock.id}
+                  style={{
+                    display: 'grid', gridTemplateColumns: '110px 1fr 1px 1fr', gap: '8px', alignItems: 'center',
+                    opacity: isRevealed ? 1 : 0.35,
+                    transition: 'opacity 0.5s',
+                    ...((!isRevealed && stock.is_hidden) ? { borderLeft: '3px dashed #F0A030', paddingLeft: '4px', marginLeft: '-7px' } : {}),
+                  }}
+                >
                   {/* Col 1: Stock name */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                    {stock.is_core && <span style={{ color: 'var(--color-cs-up)', fontSize: '12px' }}>★</span>}
-                    <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-cs-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      #{stock.keyword}
+                    {isRevealed && stock.is_core && <span style={{ color: 'var(--color-cs-up)', fontSize: '12px' }}>★</span>}
+                    <span style={{
+                      fontSize: '13px', fontWeight: 500,
+                      color: isRevealed ? 'var(--color-cs-primary)' : 'var(--color-cs-hint)',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {isRevealed ? `#${stock.keyword}` : '???'}
                     </span>
-                    {stock.is_hidden && <span className="cs-tag cs-tag-hidden" style={{ fontSize: '8px', padding: '1px 4px', flexShrink: 0 }}>H</span>}
+                    {stock.is_hidden && (
+                      <span className="cs-tag cs-tag-hidden" style={{ fontSize: '8px', padding: '1px 4px', flexShrink: 0 }}>
+                        {isRevealed ? 'H' : 'HIDDEN'}
+                      </span>
+                    )}
                     {hasGap && (
                       <span style={{
                         fontSize: '9px', fontFamily: 'var(--font-mono)', fontWeight: 600,
@@ -486,14 +532,18 @@ export default function LiveSession() {
 
                   {/* Col 2: Bookmark bar */}
                   <div style={{ position: 'relative', height: '28px', background: 'rgba(240,160,48,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${bookmarkRate}%`, background: '#F0A030', borderRadius: '6px', transition: 'width 0.7s' }} />
-                    <span style={{
-                      position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                      background: 'rgba(255,255,255,0.9)', padding: '2px 8px', borderRadius: '10px',
-                      fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 600, color: '#C07800',
-                    }}>
-                      {bookmarkRate}%
-                    </span>
+                    {isRevealed && (
+                      <div style={{ height: '100%', width: `${bookmarkRate}%`, background: '#F0A030', borderRadius: '6px', transition: 'width 0.7s' }} />
+                    )}
+                    {isRevealed && (
+                      <span style={{
+                        position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                        background: 'rgba(255,255,255,0.9)', padding: '2px 8px', borderRadius: '10px',
+                        fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 600, color: '#C07800',
+                      }}>
+                        {bookmarkRate}%
+                      </span>
+                    )}
                   </div>
 
                   {/* Col 3: Divider */}
@@ -501,23 +551,22 @@ export default function LiveSession() {
 
                   {/* Col 4: Buy bar */}
                   <div style={{ position: 'relative', height: '28px', background: 'rgba(255,71,71,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${buyRate}%`, background: '#FF4747', borderRadius: '6px', transition: 'width 0.7s' }} />
-                    <span style={{
-                      position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                      background: 'rgba(255,255,255,0.9)', padding: '2px 8px', borderRadius: '10px',
-                      fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 600, color: '#E03030',
-                    }}>
-                      {buyRate}%
-                    </span>
+                    {isRevealed && (
+                      <div style={{ height: '100%', width: `${buyRate}%`, background: '#FF4747', borderRadius: '6px', transition: 'width 0.7s' }} />
+                    )}
+                    {isRevealed && (
+                      <span style={{
+                        position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                        background: 'rgba(255,255,255,0.9)', padding: '2px 8px', borderRadius: '10px',
+                        fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 600, color: '#E03030',
+                      }}>
+                        {buyRate}%
+                      </span>
+                    )}
                   </div>
                 </div>
               )
             })}
-            {stocks.filter(s => !s.is_revealed).length > 0 && (
-              <p style={{ fontSize: '13px', color: 'var(--color-cs-hint)', textAlign: 'center', padding: '12px 0' }}>
-                아직 공개되지 않은 종목이 {stocks.filter(s => !s.is_revealed).length}개 있습니다
-              </p>
-            )}
           </div>
         </div>
       </main>

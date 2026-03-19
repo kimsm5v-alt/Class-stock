@@ -17,7 +17,7 @@
 | 06 | [06-SETUP-GUIDE.md](./06-SETUP-GUIDE.md) | 프로젝트 초기화부터 Vercel 배포까지 단계별 가이드 |
 | 07 | [07-SUPABASE-SETUP.md](./07-SUPABASE-SETUP.md) | Supabase 프로젝트 설정 및 환경 변수 가이드 |
 | 08 | [08-DESIGN-SYSTEM.md](./08-DESIGN-SYSTEM.md) | 디자인 시스템 (컬러, 타이포, 컴포넌트 스타일) |
-| 참고 | [class-stock-wireframe-v3 (2).html](<./class-stock-wireframe-v3 (2).html>) | 디자인 레퍼런스 v3 (라이트 모드) |
+| 참고 | [class-stock-wireframe-v3(3).html](./class-stock-wireframe-v3(3).html) | 디자인 레퍼런스 v3 (라이트 모드) |
 | 참고 | [class-stock-report-wireframe-v2.html](./class-stock-report-wireframe-v2.html) | 교사 리포트 와이어프레임 v2 |
 
 ---

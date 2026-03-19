@@ -29,6 +29,7 @@ export default function Report() {
   const [trades, setTrades] = useState<Trade[]>([])
   const [activeTab, setActiveTab] = useState<'analysis' | 'students'>('analysis')
   const [sortKey, setSortKey] = useState<SortKey>('return')
+  const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -131,7 +132,6 @@ export default function Report() {
     name: `#${s.keyword}`,
     type: s.is_core ? 'core' : s.is_hidden ? 'hidden' : 'normal',
     isCore: s.is_core,
-    multiplier: getMultiplier(s.is_core, s.buyRate),
   }))
 
   const getScatterColor = (type: string) => {
@@ -233,9 +233,6 @@ export default function Report() {
                       <div key={stock.id}>
                         <div style={{ fontSize: '12px', fontWeight: 500, marginBottom: '4px', color: stock.is_hidden ? 'var(--color-cs-gold-text)' : 'var(--color-cs-primary)', display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
                           <span>{stock.is_core ? '★ ' : ''}{stock.is_hidden ? '🔒 ' : ''}#{stock.keyword}</span>
-                          <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: stock.is_core ? 'var(--color-cs-up-text)' : 'var(--color-cs-down)', padding: '1px 6px', background: stock.is_core ? 'var(--color-cs-up-soft)' : 'rgba(58,123,222,0.06)', borderRadius: '4px' }}>
-                            ×{getMultiplier(stock.is_core, stock.buyRate)}
-                          </span>
                           {hasGap && <span style={{ fontSize: '9px', padding: '2px 6px', background: 'var(--color-cs-up-soft)', color: 'var(--color-cs-up-text)', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>⚠️ 갭 {gap}%</span>}
                         </div>
                         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
@@ -274,7 +271,7 @@ export default function Report() {
                       <ZAxis type="number" dataKey="z" range={[150, 600]} />
                       <ReferenceLine x={50} stroke="rgba(0,0,0,0.08)" strokeDasharray="6 4" />
                       <ReferenceLine y={50} stroke="rgba(0,0,0,0.08)" strokeDasharray="6 4" />
-                      <Tooltip content={({ active, payload }) => { if (!active || !payload?.length) return null; const d = payload[0].payload; return (<div style={{ background: '#fff', padding: '6px 10px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', fontSize: '11px' }}><p style={{ fontWeight: 600 }}>{d.name} <span style={{ color: d.isCore ? '#E03030' : '#3A7BDE', fontFamily: "'DM Mono', monospace" }}>×{d.multiplier}</span></p><p>찜 {d.x}% / 매수 {d.y}%</p></div>) }} />
+                      <Tooltip content={({ active, payload }) => { if (!active || !payload?.length) return null; const d = payload[0].payload; return (<div style={{ background: '#fff', padding: '6px 10px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', fontSize: '11px' }}><p style={{ fontWeight: 600 }}>{d.name}</p><p>찜 {d.x}% / 매수 {d.y}%</p></div>) }} />
                       <Scatter data={scatterData} shape={(props: any) => { const { cx, cy, payload: d, index } = props; const color = getScatterColor(d.type); const r = Math.max(d.z / 10, 7); let lo = r + 12; for (let j = 0; j < index; j++) { const o = scatterData[j]; if (Math.abs(d.x - o.x) < 12 && Math.abs(d.y - o.y) < 12) { lo = -(r + 12); break } } return (<g><circle cx={cx} cy={cy} r={r} fill={color + '30'} stroke={color} strokeWidth={2} /><text x={cx} y={lo > 0 ? cy - lo : cy - lo} textAnchor="middle" fontSize={11} fontWeight={600} fill="#1A1A2E" dominantBaseline={lo > 0 ? 'auto' : 'hanging'}>{d.name}</text></g>) }}>
                         {scatterData.map((e, i) => <Cell key={i} fill={getScatterColor(e.type) + '40'} stroke={getScatterColor(e.type)} strokeWidth={2} />)}
                       </Scatter>
@@ -304,7 +301,7 @@ export default function Report() {
                     <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-cs-up-text)', marginBottom: '4px' }}>다음 수업에서 짚어야 할 개념</div>
                     {missedCoreStocks.map(stock => (
                       <div key={stock.id} style={{ fontSize: '13px', color: 'var(--color-cs-primary)', lineHeight: 1.6 }}>
-                        <b style={{ color: 'var(--color-cs-up-text)' }}>#{stock.keyword}</b> <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>×{getMultiplier(true, stock.buyRate)}</span> — 핵심 개념이지만 매수율 {stock.buyRate}%.
+                        <b style={{ color: 'var(--color-cs-up-text)' }}>#{stock.keyword}</b> — 핵심 개념이지만 매수율 {stock.buyRate}%.
                         {stock.bookmarkRate > 30
                           ? ` 찜 ${stock.bookmarkRate}%로 중요성은 인식했지만 확신 부족. `
                           : ` 찜 ${stock.bookmarkRate}%로 인식 자체가 부족. `}
@@ -613,29 +610,82 @@ export default function Report() {
                     <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600, color: 'var(--color-cs-secondary)', fontSize: '12px' }}>정확률</th>
                     <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600, color: 'var(--color-cs-secondary)', fontSize: '12px' }}>종목 수</th>
                     <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600, color: 'var(--color-cs-secondary)', fontSize: '12px' }}>투자 금액</th>
+                    <th style={{ padding: '12px 8px', width: '36px' }} />
                   </tr>
                 </thead>
                 <tbody>
                   {sortedStudents.map((s, i) => {
                     const isTop = sortKey === 'return' && i === 0 && s.totalInv > 0
                     const noInv = s.totalInv === 0
+                    const isExpanded = expandedStudentId === s.id
+                    const studentHoldings = holdings.filter(h => h.student_id === s.id)
                     return (
-                      <tr key={s.id} style={{ borderBottom: '1px solid var(--color-cs-border)', background: isTop ? 'rgba(255,71,71,0.03)' : 'transparent' }}>
-                        <td style={{ padding: '12px 16px', color: 'var(--color-cs-hint)' }}>{isTop ? '🏆' : i + 1}</td>
-                        <td style={{ padding: '12px 16px', fontWeight: 600, color: noInv ? 'var(--color-cs-hint)' : 'var(--color-cs-primary)' }}>{s.nickname}</td>
-                        <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: "'Outfit',sans-serif", fontWeight: 700, color: noInv ? 'var(--color-cs-hint)' : s.returnRate >= 0 ? 'var(--color-cs-up-text)' : 'var(--color-cs-down)' }}>
-                          {noInv ? '—' : `${s.returnRate >= 0 ? '+' : ''}${s.returnRate.toFixed(1)}%`}
-                        </td>
-                        <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: noInv ? 'var(--color-cs-hint)' : 'var(--color-cs-primary)' }}>
-                          {noInv ? '—' : `${s.accuracy}%`}
-                        </td>
-                        <td style={{ padding: '12px 16px', textAlign: 'right', color: noInv ? 'var(--color-cs-hint)' : 'var(--color-cs-primary)' }}>
-                          {noInv ? '—' : s.stockCount}
-                        </td>
-                        <td style={{ padding: '12px 16px', textAlign: 'right', color: noInv ? 'var(--color-cs-hint)' : 'var(--color-cs-primary)' }}>
-                          {noInv ? '미참여' : `${s.totalInv.toLocaleString()}pt`}
-                        </td>
-                      </tr>
+                      <>
+                        <tr
+                          key={s.id}
+                          onClick={() => setExpandedStudentId(isExpanded ? null : s.id)}
+                          style={{ borderBottom: isExpanded ? 'none' : '1px solid var(--color-cs-border)', background: isTop ? 'rgba(255,71,71,0.03)' : isExpanded ? 'var(--color-cs-muted)' : 'transparent', cursor: 'pointer', transition: 'background 0.15s' }}
+                        >
+                          <td style={{ padding: '12px 16px', color: 'var(--color-cs-hint)' }}>{isTop ? '🏆' : i + 1}</td>
+                          <td style={{ padding: '12px 16px', fontWeight: 600, color: noInv ? 'var(--color-cs-hint)' : 'var(--color-cs-primary)' }}>{s.nickname}</td>
+                          <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: "'Outfit',sans-serif", fontWeight: 700, color: noInv ? 'var(--color-cs-hint)' : s.returnRate >= 0 ? 'var(--color-cs-up-text)' : 'var(--color-cs-down)' }}>
+                            {noInv ? '—' : `${s.returnRate >= 0 ? '+' : ''}${s.returnRate.toFixed(1)}%`}
+                          </td>
+                          <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: noInv ? 'var(--color-cs-hint)' : 'var(--color-cs-primary)' }}>
+                            {noInv ? '—' : `${s.accuracy}%`}
+                          </td>
+                          <td style={{ padding: '12px 16px', textAlign: 'right', color: noInv ? 'var(--color-cs-hint)' : 'var(--color-cs-primary)' }}>
+                            {noInv ? '—' : s.stockCount}
+                          </td>
+                          <td style={{ padding: '12px 16px', textAlign: 'right', color: noInv ? 'var(--color-cs-hint)' : 'var(--color-cs-primary)' }}>
+                            {noInv ? '미참여' : `${s.totalInv.toLocaleString()}pt`}
+                          </td>
+                          <td style={{ padding: '12px 8px', textAlign: 'center', color: 'var(--color-cs-hint)', fontSize: '12px', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(90deg)' : 'none' }}>›</td>
+                        </tr>
+                        {isExpanded && (
+                          <tr key={`${s.id}-detail`}>
+                            <td colSpan={7} style={{ padding: 0, borderBottom: '1px solid var(--color-cs-border)' }}>
+                              <div style={{ padding: '12px 16px 16px 48px', background: 'var(--color-cs-muted)' }}>
+                                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-cs-secondary)', marginBottom: '8px' }}>종목별 투자 내역</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px', gap: '2px', fontSize: '11px', color: 'var(--color-cs-hint)', marginBottom: '4px', paddingBottom: '4px', borderBottom: '1px solid var(--color-cs-border)' }}>
+                                  <span>종목</span>
+                                  <span style={{ textAlign: 'right' }}>투자</span>
+                                  <span style={{ textAlign: 'right' }}>정산 후</span>
+                                  <span style={{ textAlign: 'right' }}>등락률</span>
+                                </div>
+                                {stocks.map(stock => {
+                                  const h = studentHoldings.find(h => h.stock_id === stock.id)
+                                  const invested = h?.amount || 0
+                                  const multiplier = getMultiplier(stock.is_core, stock.buyRate)
+                                  const settled = invested > 0 ? Math.floor(invested * multiplier) : 0
+                                  const changeRate = invested > 0 ? Math.round((multiplier - 1) * 100) : 0
+
+                                  return (
+                                    <div key={stock.id} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px', gap: '2px', padding: '5px 0', borderBottom: '1px solid rgba(0,0,0,0.04)', fontSize: '12px', alignItems: 'center' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        {stock.is_core && <span style={{ color: 'var(--color-cs-up)', fontSize: '11px' }}>★</span>}
+                                        <span style={{ color: invested > 0 ? 'var(--color-cs-primary)' : 'var(--color-cs-hint)', fontWeight: invested > 0 ? 500 : 400 }}>#{stock.keyword}</span>
+                                      </div>
+                                      <span style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', color: invested > 0 ? 'var(--color-cs-primary)' : 'var(--color-cs-hint)' }}>
+                                        {invested > 0 ? `${invested.toLocaleString()}pt` : '—'}
+                                      </span>
+                                      <span style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', color: invested > 0 ? 'var(--color-cs-primary)' : 'var(--color-cs-hint)' }}>
+                                        {invested > 0 ? `${settled.toLocaleString()}pt` : '—'}
+                                      </span>
+                                      <span style={{
+                                        textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 600,
+                                        color: invested === 0 ? 'var(--color-cs-hint)' : stock.is_core ? 'var(--color-cs-up-text)' : 'var(--color-cs-down)',
+                                      }}>
+                                        {invested === 0 ? '—' : stock.is_core ? `▲${changeRate}%` : `▼${Math.abs(changeRate)}%`}
+                                      </span>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
                     )
                   })}
                 </tbody>
